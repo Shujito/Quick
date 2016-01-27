@@ -1,0 +1,33 @@
+doctype html
+html
+	head
+		title A title
+		link(href='/css/materialize.min.css',rel='stylesheet')
+		link(href='/css/styles.css',rel='stylesheet')
+		link(href='/css/awesomplete.css',rel='stylesheet')
+		link(href='http://fonts.googleapis.com/icon?family=Material+Icons',rel='stylesheet')
+		meta(charset='utf-8')
+		meta(name='viewport' content='width=device-width, initial-scale=1, user-scalable=no')
+	body
+		header
+			nav
+				.container
+					.nav-wrapper
+						a.brand-logo(href='/') Quick
+						ul.right.hide-on-med-and-low
+							li
+								a(href="/me")
+									i.small.material-icons person
+		main !{template}
+		footer.page-footer
+			.container
+				.row
+					.col.s12
+						h5.white-text This is a footer title
+						p.white-text This is a footer content
+			.footer-copyright
+				.container
+					.grey-text.text-lighten-4 © Put copyright here
+		script(src='/js/jquery-2.1.4.min.js')
+		script(src='/js/materialize.min.js')
+		script(src='/js/awesomplete.min.js')

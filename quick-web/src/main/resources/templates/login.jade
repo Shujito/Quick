@@ -1,0 +1,22 @@
+.container
+	h5.header.center.red-text Welcome!
+	.row
+		form.col.s12.m6.offset-m3(action='/login' method='post')
+			.row
+				.input-field.col.s12
+					label(for='email') Email
+					if (email)
+						input(maxlength='100',type='email',name='email',value='#{email}')
+					else
+						input(maxlength='100',type='email',name='email',autofocus)
+				.input-field.col.s12
+					label(for='password') Password
+					if (email)
+						input(maxlength='100',type='password',name='password',autofocus)
+					else
+						input(maxlength='100',type='password',name='password')
+				button.btn.waves-effect.col.s6 Access
+			.row
+				.col.s12
+					a(href='/signin') Create account here
+				//- a.btn.waves-effect.col.s6(href='/signin') I don't have an account

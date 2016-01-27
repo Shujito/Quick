@@ -1,0 +1,35 @@
+.container
+	h5.header.center.red-text Create an account
+	.row
+		form.col.s12.m6.offset-m3(action='/signin' method='post')
+			.row
+				.input-field.col.s12
+					label(for='username') Name
+					if (username)
+						input(maxlength='24',type='text',name='username',value='#{username}')
+					else
+						input(maxlength='24',type='text',name='username',autofocus)
+				.input-field.col.s12
+					label(for='email') Email
+					if (email)
+						input(maxlength='254',type='email',name='email',value='#{email}')
+					else
+						input(maxlength='254',type='email',name='email',autofocus)
+				.input-field.col.s12
+					label(for='password') Password
+					if (username && email)
+						input(maxlength='100',type='password',name='password',autofocus)
+					else
+						input(maxlength='100',type='password',name='password')
+				.input-field.col.s12
+					label(for='confirm') Confirm
+					input(maxlength='100',type='password',name='confirm')
+				button.btn.waves-effect.col.s6 Sign in
+			.row
+				.col.s12
+					a(href='/login') Log in here
+			if (error)
+				.row
+					.col.s12
+						p.red-text= error
+				//- a.btn.waves-effect.col.s6(href='/login') I have an account

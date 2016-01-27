@@ -1,0 +1,21 @@
+.container
+	h5.header.center.red-text My information
+	.row
+		form.col.s12.m6.offset-m3(action='/me' method='post')
+			.row
+				.input-field.col.s12
+					label(for='username') Display name
+					input(maxlength='100',type='text',name='display_name')
+				.input-field.col.s12
+					label(for='email') Email
+					input(maxlength='100',type='email',name='email')
+				.input-field.col.s12
+					label(for='password') Change Password
+					input(maxlength='100',type='password',name='password')
+				.input-field.col.s12
+					label(for='confirm') Confirm
+					input(maxlength='100',type='password',name='confirm')
+				.input-field.col.s12
+					label(for='password') Old Password
+					input(maxlength='100',type='password',name='old_password')
+				button.btn.waves-effect.col.s6 Save
