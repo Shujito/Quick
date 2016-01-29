@@ -12,9 +12,9 @@ import java.sql.ResultSet;
  */
 public class UserPasswordDaoSQLite implements UserPasswordDao {
 	public static final String TAG = UserPasswordDaoSQLite.class.getSimpleName();
-	public static final String SQL_INSERT = "insert into users_passwords(user_id,password,salt) values (?,?,?)";
+	public static final String SQL_INSERT = "insert into users_passwords (user_id,password,salt) values (?,?,?)";
 	public static final String SQL_SELECT = "select * from users_passwords where user_id = ?";
-	private Connection connection;
+	private final Connection connection;
 
 	public UserPasswordDaoSQLite(Connection connection) {
 		this.connection = connection;
@@ -27,17 +27,7 @@ public class UserPasswordDaoSQLite implements UserPasswordDao {
 			insert.setBytes(2, userPassword.getPassword());
 			insert.setBytes(3, userPassword.getSalt());
 			if (insert.executeUpdate() > 0) {
-				try (PreparedStatement select = this.connection.prepareStatement(SQL_SELECT)) {
-					select.setLong(1, userPassword.getUserId());
-					try (ResultSet rs = select.executeQuery()) {
-						if (rs.next()) {
-							Long userId = rs.getLong(rs.findColumn("user_id"));
-							byte[] password = rs.getBytes(rs.findColumn("password"));
-							byte[] salt = rs.getBytes(rs.findColumn("salt"));
-							return new UserPassword(userId, password, salt);
-						}
-					}
-				}
+				return this.findByUserID(userPassword.getUserId());
 			}
 		}
 		throw new RuntimeException("Should not reach here");
@@ -45,7 +35,18 @@ public class UserPasswordDaoSQLite implements UserPasswordDao {
 
 	@Override
 	public UserPassword findByUserID(Long userId) throws Exception {
-		return null;
+		try (PreparedStatement select = this.connection.prepareStatement(SQL_SELECT)) {
+			select.setLong(1, userId);
+			try (ResultSet rs = select.executeQuery()) {
+				if (rs.next()) {
+					Long newUserId = rs.getLong(rs.findColumn("user_id"));
+					byte[] password = rs.getBytes(rs.findColumn("password"));
+					byte[] salt = rs.getBytes(rs.findColumn("salt"));
+					return new UserPassword(newUserId, password, salt);
+				}
+			}
+		}
+		throw new Exception("User not found");
 	}
 
 	@Override

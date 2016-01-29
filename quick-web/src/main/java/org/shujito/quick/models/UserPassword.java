@@ -29,6 +29,12 @@ public class UserPassword {
 		this.userId = userId;
 		this.password = password;
 		this.salt = salt;
+	}
+
+	public UserPassword(byte[] password, byte[] salt) {
+		this.userId = -1L;
+		this.password = password;
+		this.salt = salt;
 		this.hashPassword(salt);
 	}
 

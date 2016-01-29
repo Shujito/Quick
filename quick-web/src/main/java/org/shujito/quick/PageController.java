@@ -1,5 +1,7 @@
 package org.shujito.quick;
 
+import org.shujito.quick.models.Session;
+
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
@@ -19,6 +21,22 @@ public class PageController {
 
 	static {
 		QUICK_SERVICE = new QuickService(SQLiteDatabase.getConnection());
+	}
+
+	/**
+	 * Check if it is logged in
+	 *
+	 * @param request
+	 * @param response
+	 */
+	public static void beforeMe(Request request, Response response) {
+		// TODO: check if logged in
+		String b64Session = request.cookie("session");
+		byte[] sessionBytes = Crypto.base64decode(b64Session);
+		System.out.println("session:" + b64Session);
+		if (!QUICK_SERVICE.validateSession(sessionBytes)) {
+			response.redirect("/login");
+		}
 	}
 
 	/**
@@ -44,7 +62,17 @@ public class PageController {
 	 */
 	public static ModelAndView login(Request request, Response response) {
 		String email = request.queryParams("email");
+		String password = request.queryParams("password");
 		Map<String, Object> model = new HashMap<>();
+		if ("POST".equals(request.requestMethod())) {
+			try {
+				Session session = QUICK_SERVICE.logInUser(email, password, request.userAgent());
+				String accessToken = Crypto.base64encode(session.getAccessToken());
+				response.cookie("session", accessToken, (int) (session.getExpiresAt().getTime() / 1000));
+			} catch (Exception ex) {
+				model.put("error", ex.getMessage());
+			}
+		}
 		model.put("email", email);
 		return new ModelAndView(model, "login");
 	}

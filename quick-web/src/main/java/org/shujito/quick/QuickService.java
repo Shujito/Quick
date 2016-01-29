@@ -1,9 +1,12 @@
 package org.shujito.quick;
 
+import org.shujito.quick.daos.SessionDao;
 import org.shujito.quick.daos.UserDao;
 import org.shujito.quick.daos.UserPasswordDao;
+import org.shujito.quick.daos.impl.SessionDaoSQLite;
 import org.shujito.quick.daos.impl.UserDaoSQLite;
 import org.shujito.quick.daos.impl.UserPasswordDaoSQLite;
+import org.shujito.quick.models.Session;
 import org.shujito.quick.models.User;
 import org.shujito.quick.models.UserPassword;
 
@@ -19,14 +22,33 @@ public class QuickService {
 	private final Connection connection;
 	private final UserDao userDao;
 	private final UserPasswordDao userPasswordDao;
+	private final SessionDao sessionDao;
 
 	public QuickService(Connection connection) {
 		this.connection = connection;
 		this.userDao = new UserDaoSQLite(connection);
 		this.userPasswordDao = new UserPasswordDaoSQLite(connection);
+		this.sessionDao = new SessionDaoSQLite(connection);
 	}
 
-	public void logInUser(String email, String password) {
+	public Session logInUser(String email, String password, String userAgent) throws Exception {
+		User savedUser = this.userDao.findByEmail(email);
+		UserPassword savedUserPassword = this.userPasswordDao.findByUserID(savedUser.getId());
+		UserPassword originalUserPassword = new UserPassword(password.getBytes(), savedUserPassword.getSalt());
+		if (!savedUserPassword.equals(originalUserPassword)) {
+			throw new Exception("Invalid credentials");
+		}
+		Savepoint savepoint = null;
+		try {
+			savepoint = this.connection.setSavepoint();
+			Session session = new Session(savedUser.getId(), userAgent);
+			session = this.sessionDao.insert(session);
+			this.connection.commit();
+			return session;
+		} catch (SQLException ex) {
+			this.connection.rollback(savepoint);
+			throw ex;
+		}
 	}
 
 	public User signInUser(String username, String email, String password, String confirm) throws Exception {
@@ -52,5 +74,9 @@ public class QuickService {
 			this.connection.rollback(savepoint);
 			throw ex;
 		}
+	}
+
+	public boolean validateSession(byte[] sessionBytes) {
+		return false;
 	}
 }

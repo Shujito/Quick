@@ -1,5 +1,6 @@
 package org.shujito.quick;
 
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,6 +11,7 @@ import spark.template.jade.JadeTemplateEngine;
 public class Application {
 	public static void main(String[] args) {
 		//SQLiteDatabase.getConnection();
+		String what = URLConnection.guessContentTypeFromName("music.png");
 		Spark.port(9999);
 		Spark.staticFileLocation("public");
 		Spark.externalStaticFileLocation("public");
@@ -34,10 +36,7 @@ public class Application {
 				response.redirect(uri.substring(0, uri.length() - 1));
 			}
 		});
-		Spark.before("/me", (request, response) -> {
-			// TODO: check if logged in
-			response.redirect("/login");
-		});
+		Spark.before("/me", PageController::beforeMe);
 		Spark.get("/", PageController::index, jadeTemplateEngine);
 		Spark.get("/login", PageController::login, jadeTemplateEngine);
 		Spark.post("/login", PageController::login, jadeTemplateEngine);

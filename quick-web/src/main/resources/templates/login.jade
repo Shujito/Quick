@@ -19,4 +19,8 @@
 			.row
 				.col.s12
 					a(href='/signin') Create account here
+			if (error)
+				.row
+					.col.s12
+						p.red-text= error
 				//- a.btn.waves-effect.col.s6(href='/signin') I don't have an account

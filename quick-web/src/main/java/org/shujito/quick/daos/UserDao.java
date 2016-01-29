@@ -14,7 +14,7 @@ public interface UserDao {
 
 	User findById(Long id) throws Exception;
 
-	User findByUsername(String username) throws Exception;
+	User findByEmail(String username) throws Exception;
 
 	Long update(Long id, User user) throws Exception;
 

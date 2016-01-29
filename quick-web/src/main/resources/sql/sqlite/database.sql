@@ -35,6 +35,7 @@ create table users_passwords (
 );
 
 create table sessions (
+	_id integer primary key on conflict fail autoincrement,
 	user_id integer not null on conflict fail,
 	access_token blob not null on conflict fail default (randomblob(32)),
 	expires_at integer not null on conflict ignore default (cast(((julianday('now','+15 minutes') - julianday('1970-01-01')) * 86400000) as integer)),
@@ -127,11 +128,11 @@ create view unixtime as
 
 create view list_passwords as
 	select
-		users._id,
-		users.username,
-		users.email,
-		users_passwords.password,
-		users_passwords.salt
+		users_passwords.user_id as user_id,
+		users_passwords.password as password,
+		users_passwords.salt as salt,
+		users.username as username,
+		users.email as email
 	from users
 	inner join users_passwords
 		on users._id=users_passwords.user_id;
