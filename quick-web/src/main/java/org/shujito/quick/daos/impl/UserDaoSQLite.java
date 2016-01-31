@@ -16,8 +16,10 @@ import java.util.List;
 public class UserDaoSQLite implements UserDao {
 	public static final String TAG = UserDaoSQLite.class.getSimpleName();
 	public static final String SQL_INSERT = "insert into users (username,display_name,email,group_id) values(lower(?),?,?,0)";
+	public static final String SQL_SELECT_WHERE_TOKEN = "select * from active_sessions where active_sessions.access_token = ?";
 	public static final String SQL_SELECT_WHERE_ID = "select * from users where _id = ?";
 	public static final String SQL_SELECT_WHERE_EMAIL = "select * from users where email = ?";
+	public static final String SQL_SELECT_WHERE_FIELD = "select * from users where %s = ?";
 	private final Connection connection;
 
 	public UserDaoSQLite(Connection connection) {
@@ -49,53 +51,65 @@ public class UserDaoSQLite implements UserDao {
 
 	@Override
 	public User findById(Long userID) throws Exception {
-		try (PreparedStatement select = this.connection.prepareStatement(SQL_SELECT_WHERE_ID)) {
-			select.setLong(1, userID);
-			try (ResultSet rs = select.executeQuery()) {
-				if (rs.next()) {
-					Long id = rs.getLong(rs.findColumn("_id"));
-					Date createdAt = rs.getDate(rs.findColumn("created_at"));
-					Date updatedAt = rs.getDate(rs.findColumn("updated_at"));
-					Date deletedAt = rs.getDate(rs.findColumn("deleted_at"));
-					String username = rs.getString(rs.findColumn("username"));
-					String displayName = rs.getString(rs.findColumn("display_name"));
-					String email = rs.getString(rs.findColumn("email"));
-					Long groupId = rs.getLong(rs.findColumn("group_id"));
-					User newUser = new User(id, createdAt, updatedAt, deletedAt);
-					newUser.setUsername(username);
-					newUser.setDisplayName(displayName);
-					newUser.setEmail(email);
-					newUser.setGroupId(groupId);
-					return newUser;
-				}
-			}
-		}
-		throw new Exception("User not found");
+		return this.findByField("_id", userID);
 	}
 
 	@Override
-	public User findByEmail(String _email) throws Exception {
-		try (PreparedStatement select = this.connection.prepareStatement(SQL_SELECT_WHERE_EMAIL)) {
-			select.setString(1, _email);
+	public User findByEmail(String email) throws Exception {
+		return this.findByField("email", email);
+	}
+
+	@Override
+	public User findBySession(byte[] sessionBytes) throws Exception {
+		try (PreparedStatement select = this.connection.prepareStatement(SQL_SELECT_WHERE_TOKEN)) {
+			select.setBytes(1, sessionBytes);
 			try (ResultSet rs = select.executeQuery()) {
 				if (rs.next()) {
-					Long id = rs.getLong(rs.findColumn("_id"));
-					Date createdAt = rs.getDate(rs.findColumn("created_at"));
-					Date updatedAt = rs.getDate(rs.findColumn("updated_at"));
-					Date deletedAt = rs.getDate(rs.findColumn("deleted_at"));
-					String username = rs.getString(rs.findColumn("username"));
-					String displayName = rs.getString(rs.findColumn("display_name"));
-					String email = rs.getString(rs.findColumn("email"));
-					Long groupId = rs.getLong(rs.findColumn("group_id"));
-					User newUser = new User(id, createdAt, updatedAt, deletedAt);
-					newUser.setUsername(username);
-					newUser.setDisplayName(displayName);
-					newUser.setEmail(email);
-					newUser.setGroupId(groupId);
-					return newUser;
+					return this.newUser(rs);
 				}
 			}
-			throw new Exception("User not found");
+		}
+		return null;
+	}
+
+	private User newUser(ResultSet rs) throws Exception {
+		Long id = rs.getLong(rs.findColumn("_id"));
+		Date createdAt = rs.getDate(rs.findColumn("created_at"));
+		Date updatedAt = rs.getDate(rs.findColumn("updated_at"));
+		Date deletedAt = rs.getDate(rs.findColumn("deleted_at"));
+		String username = rs.getString(rs.findColumn("username"));
+		String displayName = rs.getString(rs.findColumn("display_name"));
+		String email = rs.getString(rs.findColumn("email"));
+		Long groupId = rs.getLong(rs.findColumn("group_id"));
+		User newUser = new User(id, createdAt, updatedAt, deletedAt);
+		newUser.setUsername(username);
+		newUser.setDisplayName(displayName);
+		newUser.setEmail(email);
+		newUser.setGroupId(groupId);
+		return newUser;
+	}
+
+	User findByField(String field, Object value) throws Exception {
+		String sql = String.format(SQL_SELECT_WHERE_FIELD, field);
+		try (PreparedStatement select = this.connection.prepareStatement(sql)) {
+			if (value instanceof Long) {
+				select.setLong(1, Long.class.cast(value));
+			}
+			if (value instanceof Integer) {
+				select.setInt(1, Integer.class.cast(value));
+			}
+			if (value instanceof String) {
+				select.setString(1, String.class.cast(value));
+			}
+			if (value instanceof Date) {
+				select.setDate(1, Date.class.cast(value));
+			}
+			try (ResultSet rs = select.executeQuery()) {
+				if (rs.next()) {
+					return this.newUser(rs);
+				}
+			}
+			return null;
 		}
 	}
 
@@ -106,6 +120,7 @@ public class UserDaoSQLite implements UserDao {
 
 	@Override
 	public Long delete(Long id) throws Exception {
+		// update
 		return null;
 	}
 }

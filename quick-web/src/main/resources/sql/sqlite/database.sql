@@ -77,10 +77,8 @@ create trigger check_users before insert on users
 				raise(fail,'Username must be between 2 and 24 characters')
 			when new.email not like '%_@__%.__%' then
 				raise(fail,'Invalid email format')
-			when length(new.email) < 8 then
-				raise(fail,'Email must be longer than 8 characters')
-			when length(new.email) > 254 then
-				raise(fail,'Emails can''t be longer than 254 characters')
+			when length(new.email) < 8 or length(new.email) > 254 then
+				raise(fail,'Email must be between 8 and 24 characters')
 			end;
 	end;
 
@@ -136,3 +134,14 @@ create view list_passwords as
 	from users
 	inner join users_passwords
 		on users._id=users_passwords.user_id;
+
+create view active_sessions as
+	select
+		sessions.access_token,
+		users.*
+	from users
+	left join sessions
+		on sessions.user_id=users._id
+	where
+		users.deleted_at is null
+		and datetime(sessions.expires_at/1000,'unixepoch') > datetime('now')

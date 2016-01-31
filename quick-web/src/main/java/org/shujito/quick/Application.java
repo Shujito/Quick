@@ -1,6 +1,5 @@
 package org.shujito.quick;
 
-import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,8 +9,6 @@ import spark.template.jade.JadeTemplateEngine;
 
 public class Application {
 	public static void main(String[] args) {
-		//SQLiteDatabase.getConnection();
-		String what = URLConnection.guessContentTypeFromName("music.png");
 		Spark.port(9999);
 		Spark.staticFileLocation("public");
 		Spark.externalStaticFileLocation("public");
@@ -21,6 +18,7 @@ public class Application {
 				String rendered = super.render(modelAndView);
 				Map<String, Object> model = new HashMap<>();
 				model.put("template", rendered);
+				model.put("model", modelAndView.getModel());
 				ModelAndView newModelAndView = new ModelAndView(model, "_layout");
 				return super.render(newModelAndView);
 			}
@@ -37,12 +35,15 @@ public class Application {
 			}
 		});
 		Spark.before("/me", PageController::beforeMe);
+		Spark.before("/login", PageController::beforeLoginSignin);
+		Spark.before("/signin", PageController::beforeLoginSignin);
 		Spark.get("/", PageController::index, jadeTemplateEngine);
 		Spark.get("/login", PageController::login, jadeTemplateEngine);
 		Spark.post("/login", PageController::login, jadeTemplateEngine);
 		Spark.get("/signin", PageController::signin, jadeTemplateEngine);
 		Spark.post("/signin", PageController::signin, jadeTemplateEngine);
 		Spark.get("/me", PageController::me, jadeTemplateEngine);
+		Spark.post("/me", PageController::me, jadeTemplateEngine);
 		Spark.get("/quick", PageController::quick, jadeTemplateEngine);
 		//Spark.get("/s/:id", PageController::quick, jadeTemplateEngine);
 	}

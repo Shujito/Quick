@@ -32,19 +32,7 @@ public class SessionDaoSQLite implements SessionDao {
 				try (ResultSet generatedKeys = insert.getGeneratedKeys()) {
 					if (generatedKeys.next()) {
 						Long sessionID = generatedKeys.getLong(1);
-						try (PreparedStatement select = this.connection.prepareStatement(SQL_SELECT_WHERE_ID)) {
-							select.setLong(1, sessionID);
-							try (ResultSet rs = select.executeQuery()) {
-								if (rs.next()) {
-									Long id = rs.getLong("_id");
-									Long userId = rs.getLong("user_id");
-									byte[] accessToken = rs.getBytes("access_token");
-									Date expiresAt = rs.getDate("expires_at");
-									String userAgent = rs.getString("user_agent");
-									return new Session(id, userId, accessToken, expiresAt, userAgent);
-								}
-							}
-						}
+						return this.findById(sessionID);
 					}
 				}
 			}
@@ -58,7 +46,20 @@ public class SessionDaoSQLite implements SessionDao {
 	}
 
 	@Override
-	public Session findById(Long id) throws Exception {
+	public Session findById(Long sessionID) throws Exception {
+		try (PreparedStatement select = this.connection.prepareStatement(SQL_SELECT_WHERE_ID)) {
+			select.setLong(1, sessionID);
+			try (ResultSet rs = select.executeQuery()) {
+				if (rs.next()) {
+					Long id = rs.getLong("_id");
+					Long userId = rs.getLong("user_id");
+					byte[] accessToken = rs.getBytes("access_token");
+					Date expiresAt = rs.getDate("expires_at");
+					String userAgent = rs.getString("user_agent");
+					return new Session(id, userId, accessToken, expiresAt, userAgent);
+				}
+			}
+		}
 		return null;
 	}
 }

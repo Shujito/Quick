@@ -16,6 +16,8 @@ public interface UserDao {
 
 	User findByEmail(String username) throws Exception;
 
+	User findBySession(byte[] sessionBytes) throws Exception;
+
 	Long update(Long id, User user) throws Exception;
 
 	Long delete(Long id) throws Exception;

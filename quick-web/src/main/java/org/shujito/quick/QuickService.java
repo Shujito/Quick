@@ -1,5 +1,6 @@
 package org.shujito.quick;
 
+import org.apache.commons.validator.routines.EmailValidator;
 import org.shujito.quick.daos.SessionDao;
 import org.shujito.quick.daos.UserDao;
 import org.shujito.quick.daos.UserPasswordDao;
@@ -32,7 +33,16 @@ public class QuickService {
 	}
 
 	public Session logInUser(String email, String password, String userAgent) throws Exception {
+		if (!EmailValidator.getInstance().isValid(email)) {
+			throw new Exception("Invalid email address");
+		}
+		if (password.length() < 8) {
+			throw new Exception("Password is too short");
+		}
 		User savedUser = this.userDao.findByEmail(email);
+		if (savedUser == null) {
+			throw new Exception("User not found");
+		}
 		UserPassword savedUserPassword = this.userPasswordDao.findByUserID(savedUser.getId());
 		UserPassword originalUserPassword = new UserPassword(password.getBytes(), savedUserPassword.getSalt());
 		if (!savedUserPassword.equals(originalUserPassword)) {
@@ -76,7 +86,7 @@ public class QuickService {
 		}
 	}
 
-	public boolean validateSession(byte[] sessionBytes) {
-		return false;
+	public User validateSession(byte[] sessionBytes) throws Exception {
+		return this.userDao.findBySession(sessionBytes);
 	}
 }

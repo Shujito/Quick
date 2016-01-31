@@ -1,15 +1,18 @@
 package org.shujito.quick;
 
 import org.shujito.quick.models.Session;
+import org.shujito.quick.models.User;
 
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import spark.HaltException;
 import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
+import spark.Spark;
 
 /**
  * @author shujito
@@ -24,18 +27,48 @@ public class PageController {
 	}
 
 	/**
-	 * Check if it is logged in
+	 * Check if it isn't logged in
 	 *
 	 * @param request
 	 * @param response
 	 */
 	public static void beforeMe(Request request, Response response) {
-		// TODO: check if logged in
 		String b64Session = request.cookie("session");
 		byte[] sessionBytes = Crypto.base64decode(b64Session);
-		System.out.println("session:" + b64Session);
-		if (!QUICK_SERVICE.validateSession(sessionBytes)) {
+		try {
+			User user = QUICK_SERVICE.validateSession(sessionBytes);
+			if (user == null) {
+				response.redirect("/login");
+				Spark.halt();
+			}
+		} catch (Exception e) {
+			if (!(e instanceof HaltException)) {
+				e.printStackTrace();
+			}
 			response.redirect("/login");
+		}
+	}
+
+	/**
+	 * Check if it is logged in
+	 *
+	 * @param request
+	 * @param response
+	 */
+	public static void beforeLoginSignin(Request request, Response response) {
+		String b64Session = request.cookie("session");
+		byte[] sessionBytes = Crypto.base64decode(b64Session);
+		try {
+			User user = QUICK_SERVICE.validateSession(sessionBytes);
+			if (user != null) {
+				response.redirect("/me");
+				Spark.halt();
+			}
+		} catch (Exception e) {
+			if (!(e instanceof HaltException)) {
+				e.printStackTrace();
+			}
+			response.redirect("/me");
 		}
 	}
 
@@ -68,7 +101,11 @@ public class PageController {
 			try {
 				Session session = QUICK_SERVICE.logInUser(email, password, request.userAgent());
 				String accessToken = Crypto.base64encode(session.getAccessToken());
-				response.cookie("session", accessToken, (int) (session.getExpiresAt().getTime() / 1000));
+				Date now = new Date();
+				System.out.println("now:" + now + " millis:" + now.getTime());
+				long expiration = session.getExpiresAt().getTime() - now.getTime();
+				response.cookie("session", accessToken, (int) (expiration / 1000));
+				response.redirect("/me");
 			} catch (Exception ex) {
 				model.put("error", ex.getMessage());
 			}
@@ -115,6 +152,18 @@ public class PageController {
 	 * @return
 	 */
 	public static ModelAndView me(Request request, Response response) {
+		String b64Session = request.cookie("session");
+		byte[] sessionBytes = Crypto.base64decode(b64Session);
+		try {
+			User user = QUICK_SERVICE.validateSession(sessionBytes);
+			Map<String, Object> model = new HashMap<>();
+			model.put("username", user.getUsername());
+			model.put("display_name", user.getDisplayName());
+			model.put("email", user.getEmail());
+			return new ModelAndView(model, "me");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return new ModelAndView(EMPTY, "me");
 	}
 

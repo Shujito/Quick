@@ -4,11 +4,14 @@
 		form.col.s12.m6.offset-m3(action='/me' method='post')
 			.row
 				.input-field.col.s12
-					label(for='username') Display name
-					input(maxlength='100',type='text',name='display_name')
+					label(for='username') Username
+					input(disabled,type='text',name='username',value="#{username}")
+				.input-field.col.s12
+					label(for='display_name') Display name
+					input(maxlength='100',type='text',name='display_name',value="#{display_name}")
 				.input-field.col.s12
 					label(for='email') Email
-					input(maxlength='100',type='email',name='email')
+					input(maxlength='100',type='email',name='email',value="#{email}")
 				.input-field.col.s12
 					label(for='password') Change Password
 					input(maxlength='100',type='password',name='password')
