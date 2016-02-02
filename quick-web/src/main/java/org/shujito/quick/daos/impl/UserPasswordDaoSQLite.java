@@ -39,9 +39,9 @@ public class UserPasswordDaoSQLite implements UserPasswordDao {
 			select.setLong(1, userId);
 			try (ResultSet rs = select.executeQuery()) {
 				if (rs.next()) {
-					Long newUserId = rs.getLong(rs.findColumn("user_id"));
-					byte[] password = rs.getBytes(rs.findColumn("password"));
-					byte[] salt = rs.getBytes(rs.findColumn("salt"));
+					Long newUserId = rs.getLong("user_id");
+					byte[] password = rs.getBytes("password");
+					byte[] salt = rs.getBytes("salt");
 					return new UserPassword(newUserId, password, salt);
 				}
 			}

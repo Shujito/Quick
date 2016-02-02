@@ -3,6 +3,8 @@ package org.shujito.quick;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.neuland.jade4j.JadeConfiguration;
+import de.neuland.jade4j.template.FileTemplateLoader;
 import spark.ModelAndView;
 import spark.Spark;
 import spark.template.jade.JadeTemplateEngine;
@@ -12,7 +14,10 @@ public class Application {
 		Spark.port(9999);
 		Spark.staticFileLocation("public");
 		Spark.externalStaticFileLocation("public");
-		JadeTemplateEngine jadeTemplateEngine = new JadeTemplateEngine() {
+		JadeConfiguration jcon = new JadeConfiguration();
+		jcon.setCaching(false);
+		jcon.setTemplateLoader(new FileTemplateLoader("./src/main/resources/templates/", "UTF-8"));
+		JadeTemplateEngine jadeTemplateEngine = new JadeTemplateEngine(jcon) {
 			@Override
 			public String render(ModelAndView modelAndView) {
 				String rendered = super.render(modelAndView);
@@ -24,6 +29,7 @@ public class Application {
 			}
 		};
 		Spark.exception(Exception.class, (exception, request, response) -> {
+			exception.printStackTrace();
 			response.status(500);
 			response.body("this happened: '" + exception + "'");
 		});
@@ -45,6 +51,7 @@ public class Application {
 		Spark.get("/me", PageController::me, jadeTemplateEngine);
 		Spark.post("/me", PageController::me, jadeTemplateEngine);
 		Spark.get("/quick", PageController::quick, jadeTemplateEngine);
-		//Spark.get("/s/:id", PageController::quick, jadeTemplateEngine);
+		Spark.post("/quick", "multipart/form-data", PageController::quick, jadeTemplateEngine);
+		Spark.get("/s/:id", PageController::quick, jadeTemplateEngine);
 	}
 }

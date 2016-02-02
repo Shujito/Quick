@@ -1,1 +1,16 @@
 .container
+	h5.header.center.red-text Upload!
+	.row
+		form.col.s12.m6.offset-m3(action='/quick' method='post',enctype='multipart/form-data')
+			.row
+				.col.s12.text-gray Keep the file size under 50 MB please.
+				.file-field.input-field.col.s12
+					.btn
+						span File
+						input(type='file',name='contents')
+					.file-path-wrapper
+						input.file-path.validate(type='text',placeholder='Select a file',name='name')
+				.input-field.col.s12
+					label(for='description') Description
+					textarea.materialize-textarea(maxlength='145',type='text',name='description')
+				button.btn.waves-effect.col.s12 Upload!

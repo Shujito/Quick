@@ -17,31 +17,11 @@ public class UserDaoSQLite implements UserDao {
 	public static final String TAG = UserDaoSQLite.class.getSimpleName();
 	public static final String SQL_INSERT = "insert into users (username,display_name,email,group_id) values(lower(?),?,?,0)";
 	public static final String SQL_SELECT_WHERE_TOKEN = "select * from active_sessions where active_sessions.access_token = ?";
-	public static final String SQL_SELECT_WHERE_ID = "select * from users where _id = ?";
-	public static final String SQL_SELECT_WHERE_EMAIL = "select * from users where email = ?";
 	public static final String SQL_SELECT_WHERE_FIELD = "select * from users where %s = ?";
 	private final Connection connection;
 
 	public UserDaoSQLite(Connection connection) {
 		this.connection = connection;
-	}
-
-	@Override
-	public User insert(User user) throws Exception {
-		try (PreparedStatement insert = this.connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
-			insert.setString(1, user.getUsername());
-			insert.setString(2, user.getUsername());
-			insert.setString(3, user.getEmail());
-			if (insert.executeUpdate() > 0) {
-				try (ResultSet generatedKeys = insert.getGeneratedKeys()) {
-					if (generatedKeys.next()) {
-						Long userID = generatedKeys.getLong(1);
-						return this.findById(userID);
-					}
-				}
-			}
-			throw new RuntimeException("Should not reach here");
-		}
 	}
 
 	@Override
@@ -73,14 +53,14 @@ public class UserDaoSQLite implements UserDao {
 	}
 
 	private User newUser(ResultSet rs) throws Exception {
-		Long id = rs.getLong(rs.findColumn("_id"));
-		Date createdAt = rs.getDate(rs.findColumn("created_at"));
-		Date updatedAt = rs.getDate(rs.findColumn("updated_at"));
-		Date deletedAt = rs.getDate(rs.findColumn("deleted_at"));
-		String username = rs.getString(rs.findColumn("username"));
-		String displayName = rs.getString(rs.findColumn("display_name"));
-		String email = rs.getString(rs.findColumn("email"));
-		Long groupId = rs.getLong(rs.findColumn("group_id"));
+		Long id = rs.getLong("_id");
+		Date createdAt = rs.getDate("created_at");
+		Date updatedAt = rs.getDate("updated_at");
+		Date deletedAt = rs.getDate("deleted_at");
+		String username = rs.getString("username");
+		String displayName = rs.getString("display_name");
+		String email = rs.getString("email");
+		Long groupId = rs.getLong("group_id");
 		User newUser = new User(id, createdAt, updatedAt, deletedAt);
 		newUser.setUsername(username);
 		newUser.setDisplayName(displayName);
@@ -110,6 +90,24 @@ public class UserDaoSQLite implements UserDao {
 				}
 			}
 			return null;
+		}
+	}
+
+	@Override
+	public User insert(User user) throws Exception {
+		try (PreparedStatement insert = this.connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
+			insert.setString(1, user.getUsername());
+			insert.setString(2, user.getUsername());
+			insert.setString(3, user.getEmail());
+			if (insert.executeUpdate() > 0) {
+				try (ResultSet generatedKeys = insert.getGeneratedKeys()) {
+					if (generatedKeys.next()) {
+						Long userID = generatedKeys.getLong(1);
+						return this.findById(userID);
+					}
+				}
+			}
+			throw new RuntimeException("Should not reach here");
 		}
 	}
 

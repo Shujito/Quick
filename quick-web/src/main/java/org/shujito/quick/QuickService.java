@@ -1,12 +1,15 @@
 package org.shujito.quick;
 
 import org.apache.commons.validator.routines.EmailValidator;
+import org.shujito.quick.daos.QuickDao;
 import org.shujito.quick.daos.SessionDao;
 import org.shujito.quick.daos.UserDao;
 import org.shujito.quick.daos.UserPasswordDao;
+import org.shujito.quick.daos.impl.QuickDaoSQLite;
 import org.shujito.quick.daos.impl.SessionDaoSQLite;
 import org.shujito.quick.daos.impl.UserDaoSQLite;
 import org.shujito.quick.daos.impl.UserPasswordDaoSQLite;
+import org.shujito.quick.models.Quick;
 import org.shujito.quick.models.Session;
 import org.shujito.quick.models.User;
 import org.shujito.quick.models.UserPassword;
@@ -24,12 +27,14 @@ public class QuickService {
 	private final UserDao userDao;
 	private final UserPasswordDao userPasswordDao;
 	private final SessionDao sessionDao;
+	private final QuickDao quickDao;
 
 	public QuickService(Connection connection) {
 		this.connection = connection;
 		this.userDao = new UserDaoSQLite(connection);
 		this.userPasswordDao = new UserPasswordDaoSQLite(connection);
 		this.sessionDao = new SessionDaoSQLite(connection);
+		this.quickDao = new QuickDaoSQLite(connection);
 	}
 
 	public Session logInUser(String email, String password, String userAgent) throws Exception {
@@ -62,6 +67,12 @@ public class QuickService {
 	}
 
 	public User signInUser(String username, String email, String password, String confirm) throws Exception {
+		if (!username.matches("[A-Za-z0-9]+")) {
+			throw new Exception("Username only allows letters and numbers");
+		}
+		if (!EmailValidator.getInstance().isValid(email)) {
+			throw new Exception("Invalid email address");
+		}
 		if (password.length() < 8 || confirm.length() < 8) {
 			throw new Exception("Password must be longer than 8 characters");
 		}
@@ -86,7 +97,27 @@ public class QuickService {
 		}
 	}
 
-	public User validateSession(byte[] sessionBytes) throws Exception {
+	public User getUserFromSession(byte[] sessionBytes) throws Exception {
 		return this.userDao.findBySession(sessionBytes);
+	}
+
+	public Quick uploadQuick(byte[] bytes, String contentType, String name, String description) throws Exception {
+		name = name.substring(0, Math.min(name.length(), 50));
+		Quick quick = new Quick();
+		quick.setContents(bytes);
+		quick.setContentType(contentType);
+		quick.setName(name);
+		quick.setDescription(description);
+		quick.setIsPublic(true);
+		Savepoint savepoint = null;
+		try {
+			savepoint = this.connection.setSavepoint();
+			quick = this.quickDao.insert(quick);
+			this.connection.commit();
+			return quick;
+		} catch (Exception ex) {
+			this.connection.rollback(savepoint);
+			throw ex;
+		}
 	}
 }

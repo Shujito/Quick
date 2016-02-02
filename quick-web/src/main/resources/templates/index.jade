@@ -1,5 +1,12 @@
 .container
-	.fixed-action-btn
-		a.btn-floating.btn-large.red
-			i.large.material-icons mode_edit
-	p Now: #{milliseconds}
+	.container
+		.row
+			.col.s12.offset-m3.m6
+				.card-panel.hoverable
+					span Now: #{milliseconds}
+.fixed-bottom
+	.container
+		.row
+			.col.s12.right-align
+				a.btn-floating.btn-large(href='/quick')
+					i.large.material-icons file_upload

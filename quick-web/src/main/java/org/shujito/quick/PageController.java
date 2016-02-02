@@ -1,18 +1,25 @@
 package org.shujito.quick;
 
+import org.shujito.quick.models.Quick;
 import org.shujito.quick.models.Session;
 import org.shujito.quick.models.User;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.http.Part;
 
 import spark.HaltException;
 import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
+import spark.utils.IOUtils;
 
 /**
  * @author shujito
@@ -36,7 +43,7 @@ public class PageController {
 		String b64Session = request.cookie("session");
 		byte[] sessionBytes = Crypto.base64decode(b64Session);
 		try {
-			User user = QUICK_SERVICE.validateSession(sessionBytes);
+			User user = QUICK_SERVICE.getUserFromSession(sessionBytes);
 			if (user == null) {
 				response.redirect("/login");
 				Spark.halt();
@@ -59,7 +66,7 @@ public class PageController {
 		String b64Session = request.cookie("session");
 		byte[] sessionBytes = Crypto.base64decode(b64Session);
 		try {
-			User user = QUICK_SERVICE.validateSession(sessionBytes);
+			User user = QUICK_SERVICE.getUserFromSession(sessionBytes);
 			if (user != null) {
 				response.redirect("/me");
 				Spark.halt();
@@ -122,15 +129,14 @@ public class PageController {
 	 * @return
 	 */
 	public static ModelAndView signin(Request request, Response response) {
-		//System.out.println("method:" + request.requestMethod());
 		if ("POST".equals(request.requestMethod())) {
 			String username = request.queryParams("username");
 			String email = request.queryParams("email");
 			String password = request.queryParams("password");
 			String confirm = request.queryParams("confirm");
 			try {
-				QUICK_SERVICE.signInUser(username, email, password, confirm);
-				String emailEncoded = URLEncoder.encode(email, "utf-8");
+				User user = QUICK_SERVICE.signInUser(username, email, password, confirm);
+				String emailEncoded = URLEncoder.encode(user.getEmail(), "utf-8");
 				response.redirect("/login?email=" + emailEncoded);
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -155,7 +161,7 @@ public class PageController {
 		String b64Session = request.cookie("session");
 		byte[] sessionBytes = Crypto.base64decode(b64Session);
 		try {
-			User user = QUICK_SERVICE.validateSession(sessionBytes);
+			User user = QUICK_SERVICE.getUserFromSession(sessionBytes);
 			Map<String, Object> model = new HashMap<>();
 			model.put("username", user.getUsername());
 			model.put("display_name", user.getDisplayName());
@@ -175,6 +181,29 @@ public class PageController {
 	 * @return
 	 */
 	public static ModelAndView quick(Request request, Response response) {
+		if ("POST".equals(request.requestMethod())) {
+			long maxFileSize = 1024 * 1024 * 50;
+			long maxRequestSize = 1024 * 1024 * 50;
+			int fileSizeThreshold = 1024;
+			MultipartConfigElement mce = new MultipartConfigElement("/tmp/stomp", maxFileSize, maxRequestSize, fileSizeThreshold);
+			request.raw().setAttribute("org.eclipse.jetty.multipartConfig", mce);
+			try {
+				Part contents = request.raw().getPart("contents");
+				String contentType = contents.getHeader("content-type");
+				String name = request.queryParams("name");
+				String description = request.queryParams("description");
+				try (final InputStream is = contents.getInputStream()) {
+					try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+						IOUtils.copy(is, baos);
+						byte[] bytes = baos.toByteArray();
+						System.out.println("file is " + bytes.length + " bytes long");
+						Quick quick = QUICK_SERVICE.uploadQuick(bytes, contentType, name, description);
+					}
+				}
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
 		return new ModelAndView(EMPTY, "quick");
 	}
 }

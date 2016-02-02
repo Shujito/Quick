@@ -13,8 +13,10 @@
 					label(for='email') Email
 					if (email)
 						input(maxlength='254',type='email',name='email',value='#{email}')
-					else
+					else if (username)
 						input(maxlength='254',type='email',name='email',autofocus)
+					else
+						input(maxlength='254',type='email',name='email')
 				.input-field.col.s12
 					label(for='password') Password
 					if (username && email)
