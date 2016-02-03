@@ -167,7 +167,7 @@ public class PageController {
 			long maxFileSize = 1024 * 1024 * 50;
 			long maxRequestSize = 1024 * 1024 * 50;
 			int fileSizeThreshold = 1024;
-			MultipartConfigElement multipartConfigElement = new MultipartConfigElement("/tmp/stomp", maxFileSize, maxRequestSize, fileSizeThreshold);
+			MultipartConfigElement multipartConfigElement = new MultipartConfigElement("/tmp/quick", maxFileSize, maxRequestSize, fileSizeThreshold);
 			request.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
 			try {
 				Part contents = request.raw().getPart("contents");
