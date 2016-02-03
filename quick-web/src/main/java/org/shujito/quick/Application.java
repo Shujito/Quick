@@ -40,18 +40,20 @@ public class Application {
 				response.redirect(uri.substring(0, uri.length() - 1));
 			}
 		});
-		Spark.before("/me", PageController::beforeMe);
-		Spark.before("/login", PageController::beforeLoginSignin);
-		Spark.before("/signin", PageController::beforeLoginSignin);
-		Spark.get("/", PageController::index, jadeTemplateEngine);
-		Spark.get("/login", PageController::login, jadeTemplateEngine);
-		Spark.post("/login", PageController::login, jadeTemplateEngine);
-		Spark.get("/signin", PageController::signin, jadeTemplateEngine);
-		Spark.post("/signin", PageController::signin, jadeTemplateEngine);
-		Spark.get("/me", PageController::me, jadeTemplateEngine);
-		Spark.post("/me", PageController::me, jadeTemplateEngine);
-		Spark.get("/quick", PageController::quick, jadeTemplateEngine);
-		Spark.post("/quick", "multipart/form-data", PageController::quick, jadeTemplateEngine);
-		Spark.get("/s/:id", PageController::quick, jadeTemplateEngine);
+		PageController pageController = new PageController();
+		Spark.before("/me", pageController::before);
+		Spark.before("/login", pageController::before);
+		Spark.before("/signin", pageController::before);
+		Spark.get("/", pageController::index, jadeTemplateEngine);
+		Spark.get("/login", pageController::login, jadeTemplateEngine);
+		Spark.post("/login", pageController::login, jadeTemplateEngine);
+		Spark.get("/signin", pageController::signin, jadeTemplateEngine);
+		Spark.post("/signin", pageController::signin, jadeTemplateEngine);
+		Spark.get("/logout", pageController::logout, jadeTemplateEngine);
+		Spark.get("/me", pageController::me, jadeTemplateEngine);
+		Spark.post("/me", pageController::me, jadeTemplateEngine);
+		Spark.get("/quick", pageController::quick, jadeTemplateEngine);
+		Spark.post("/quick", "multipart/form-data", pageController::quick, jadeTemplateEngine);
+		Spark.get("/s/:id", pageController::quick, jadeTemplateEngine);
 	}
 }

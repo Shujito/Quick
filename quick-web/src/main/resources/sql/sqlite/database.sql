@@ -3,7 +3,7 @@ create table user_groups (
 	name text not null on conflict fail
 );
 
-insert into user_groups(name) values('users');
+insert into user_groups(_id,name) values(1,'users');
 
 create table users (
 	_id integer primary key on conflict fail autoincrement,
