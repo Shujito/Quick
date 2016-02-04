@@ -101,14 +101,20 @@ public class QuickService {
 		return this.userDao.findBySession(sessionBytes);
 	}
 
-	public Quick uploadQuick(byte[] bytes, String contentType, String name, String description) throws Exception {
+	public Quick uploadQuick(User user, byte[] bytes, String contentType, String name, String description) throws Exception {
 		name = name.substring(0, Math.min(name.length(), 50));
 		Quick quick = new Quick();
+		if (user != null) {
+			quick.setUserId(user.getId());
+		}
 		quick.setContents(bytes);
+		byte[] hash = Crypto.sha256(bytes);
+		quick.setContentHash(hash);
+		quick.setContentSize((long) bytes.length);
 		quick.setContentType(contentType);
 		quick.setName(name);
 		quick.setDescription(description);
-		quick.setIsPublic(true);
+		quick.setIsPublic(user == null);
 		Savepoint savepoint = null;
 		try {
 			savepoint = this.connection.setSavepoint();

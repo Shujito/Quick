@@ -28,6 +28,12 @@ public class Quick {
 	private byte[] contents;
 	@Getter
 	@Setter
+	private byte[] contentHash;
+	@Getter
+	@Setter
+	private Long contentSize;
+	@Getter
+	@Setter
 	private String contentType;
 	@Getter
 	@Setter

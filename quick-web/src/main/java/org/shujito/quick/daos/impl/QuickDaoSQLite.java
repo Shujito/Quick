@@ -17,9 +17,9 @@ import java.util.List;
  */
 public class QuickDaoSQLite implements QuickDao {
 	public static final String TAG = QuickDaoSQLite.class.getSimpleName();
-	public static final String SQL_INSERT = "insert into quicks(user_id,contents,content_type,name,description,is_public) values (?,?,?,?,?,?)";
-	public static final String SQL_SELECT = "select _id,created_at,updated_at,expires_at,deleted_at,user_id,contents,content_type,name,description,is_public from quicks where _id = ?";
-	public static final String SQL_SELECT_ALL_BUT_CONTENTS = "select _id,created_at,updated_at,expires_at,deleted_at,user_id,content_type,name,description,is_public from quicks where _id = ?";
+	public static final String SQL_INSERT = "insert into quicks(user_id,contents,content_hash,content_size,content_type,name,description,is_public) values (?,?,?,?,?,?,?,?)";
+	public static final String SQL_SELECT = "select * from quicks where _id = ?";
+	public static final String SQL_SELECT_ALL_BUT_CONTENTS = "select _id,created_at,updated_at,expires_at,deleted_at,user_id,content_hash,content_size,content_type,name,description,is_public from quicks where _id = ?";
 	private final Connection connection;
 
 	public QuickDaoSQLite(Connection connection) {
@@ -76,6 +76,7 @@ public class QuickDaoSQLite implements QuickDao {
 
 	@Override
 	public Quick insert(Quick quick) throws Exception {
+		// insert into quicks(user_id,contents,content_hash,content_size,content_type,name,description,is_public) values (?,?,?,?,?,?,?,?)
 		try (PreparedStatement insert = this.connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
 			if (quick.getUserId() != null) {
 				insert.setLong(1, quick.getUserId());
@@ -83,10 +84,12 @@ public class QuickDaoSQLite implements QuickDao {
 				insert.setNull(1, Types.INTEGER);
 			}
 			insert.setBytes(2, quick.getContents());
-			insert.setString(3, quick.getContentType());
-			insert.setString(4, quick.getName());
-			insert.setString(5, quick.getDescription());
-			insert.setBoolean(6, quick.getIsPublic());
+			insert.setBytes(3, quick.getContentHash());
+			insert.setLong(4, quick.getContentSize());
+			insert.setString(5, quick.getContentType());
+			insert.setString(6, quick.getName());
+			insert.setString(7, quick.getDescription());
+			insert.setBoolean(8, quick.getIsPublic());
 			if (insert.executeUpdate() > 0) {
 				try (ResultSet generatedKeys = insert.getGeneratedKeys()) {
 					if (generatedKeys.next()) {

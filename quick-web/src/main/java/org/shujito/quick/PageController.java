@@ -1,6 +1,5 @@
 package org.shujito.quick;
 
-import org.shujito.quick.models.Quick;
 import org.shujito.quick.models.Session;
 import org.shujito.quick.models.User;
 
@@ -163,6 +162,7 @@ public class PageController {
 	 * @return
 	 */
 	public ModelAndView quick(Request request, Response response) {
+		User user = request.session().attribute(ATTRIBUTE_USER);
 		if ("POST".equals(request.requestMethod())) {
 			long maxFileSize = 1024 * 1024 * 50;
 			long maxRequestSize = 1024 * 1024 * 50;
@@ -170,16 +170,19 @@ public class PageController {
 			MultipartConfigElement multipartConfigElement = new MultipartConfigElement("/tmp/quick", maxFileSize, maxRequestSize, fileSizeThreshold);
 			request.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
 			try {
-				Part contents = request.raw().getPart("contents");
-				String contentType = contents.getHeader("content-type");
+				Part contentsPart = request.raw().getPart("contents");
+				String contentType = contentsPart.getHeader("content-type");
 				String name = request.queryParams("name");
 				String description = request.queryParams("description");
-				try (final InputStream is = contents.getInputStream()) {
+				try (final InputStream is = contentsPart.getInputStream()) {
 					try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 						IOUtils.copy(is, baos);
-						byte[] bytes = baos.toByteArray();
-						System.out.println("file is " + bytes.length + " bytes long");
-						Quick quick = this.quickService.uploadQuick(bytes, contentType, name, description);
+						byte[] contentBytes = baos.toByteArray();
+						System.out.println("file is " + contentBytes.length + " bytes long");
+						//Quick quick = this.quickService.uploadQuick(user, contentBytes, contentType, name, description);
+						//response.redirect("/s/:id");
+						this.quickService.uploadQuick(user, contentBytes, contentType, name, description);
+						response.redirect("/");
 					}
 				}
 			} catch (Exception e) {

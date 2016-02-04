@@ -55,6 +55,8 @@ create table quicks (
 	deleted_at integer,
 	user_id integer,
 	contents blob not null on conflict fail,
+	content_hash blob not null on conflict fail,
+	content_size integer not null on conflict fail,
 	content_type text not null on conflict fail,
 	name text not null on conflict fail,
 	description text not null on conflict fail,
