@@ -1,12 +1,15 @@
-.container
-	.container
-		.row
-			.col.s12.offset-m3.m6
-				.card-panel.hoverable
-					span Now: #{milliseconds}
+.container.padding-bottom
+	ul.collection
+		each quick in quicks
+			a.collection-item.avatar(href='/q/#{quick.id}')
+				i.material-icons.circle insert_drive_file
+				span.black-text.title.truncate= quick.name
+				p.grey-text= quick.description
+				p.grey-text= quick.content_size
+				//- a.secondary-content(href='/'): i.material-icons file_download
 .fixed-bottom
 	.container
 		.row
 			.col.s12.right-align
 				a.btn-floating.btn-large(href='/quick')
-					i.large.material-icons file_upload
+					i.material-icons file_upload

@@ -1,6 +1,6 @@
 package org.shujito.quick.models;
 
-import org.shujito.quick.Crypto;
+import org.shujito.quick.utils.Crypto;
 
 import java.security.SecureRandom;
 import java.util.zip.CRC32;

@@ -184,9 +184,7 @@ create view active_sessions as
 		and datetime(sessions.expires_at/1000,'unixepoch') > datetime('now');
 
 create view active_quicks as
-	select
-		*
-	from quicks
+	select * from quicks
 	where
 		quicks.deleted_at is null
 		and datetime(quicks.expires_at/1000,'unixepoch') > datetime('now')

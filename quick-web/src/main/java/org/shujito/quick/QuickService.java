@@ -17,6 +17,7 @@ import org.shujito.quick.models.UserPassword;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Savepoint;
+import java.util.List;
 
 /**
  * @author shujito
@@ -108,7 +109,7 @@ public class QuickService {
 			quick.setUserId(user.getId());
 		}
 		quick.setContents(bytes);
-		byte[] hash = Crypto.sha256(bytes);
+		byte[] hash = org.shujito.quick.utils.Crypto.sha256(bytes);
 		quick.setContentHash(hash);
 		quick.setContentSize((long) bytes.length);
 		quick.setContentType(contentType);
@@ -125,5 +126,9 @@ public class QuickService {
 			this.connection.rollback(savepoint);
 			throw ex;
 		}
+	}
+
+	public List<Quick> getActiveQuicks() throws Exception {
+		return this.quickDao.all();
 	}
 }

@@ -1,4 +1,4 @@
-package org.shujito.quick;
+package org.shujito.quick.utils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

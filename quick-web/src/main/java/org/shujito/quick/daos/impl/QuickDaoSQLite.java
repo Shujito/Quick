@@ -1,6 +1,6 @@
 package org.shujito.quick.daos.impl;
 
-import org.shujito.quick.JDBCUtils;
+import org.shujito.quick.utils.JDBCUtils;
 import org.shujito.quick.daos.QuickDao;
 import org.shujito.quick.models.Quick;
 
@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -19,7 +20,8 @@ public class QuickDaoSQLite implements QuickDao {
 	public static final String TAG = QuickDaoSQLite.class.getSimpleName();
 	public static final String SQL_INSERT = "insert into quicks(user_id,contents,content_hash,content_size,content_type,name,description,is_public) values (?,?,?,?,?,?,?,?)";
 	public static final String SQL_SELECT = "select * from quicks where _id = ?";
-	public static final String SQL_SELECT_ALL_BUT_CONTENTS = "select _id,created_at,updated_at,expires_at,deleted_at,user_id,content_hash,content_size,content_type,name,description,is_public from quicks where _id = ?";
+	public static final String SQL_SELECT_ALL_BUT_CONTENTS = "select _id,created_at,updated_at,expires_at,deleted_at,user_id,content_hash,content_size,content_type,name,description,is_public from active_quicks order by created_at desc";
+	public static final String SQL_SELECT_ALL_BUT_CONTENTS_WHERE = "select _id,created_at,updated_at,expires_at,deleted_at,user_id,content_hash,content_size,content_type,name,description,is_public from quicks where _id = ?";
 	private final Connection connection;
 
 	public QuickDaoSQLite(Connection connection) {
@@ -28,7 +30,16 @@ public class QuickDaoSQLite implements QuickDao {
 
 	@Override
 	public List<Quick> all() throws Exception {
-		return null;
+		List<Quick> quicks = new ArrayList<>();
+		try (PreparedStatement select = this.connection.prepareStatement(SQL_SELECT_ALL_BUT_CONTENTS)) {
+			try (ResultSet rs = select.executeQuery()) {
+				while (rs.next()) {
+					Quick quick = this.newQuick(rs);
+					quicks.add(quick);
+				}
+			}
+		}
+		return quicks;
 	}
 
 	@Override
@@ -38,7 +49,7 @@ public class QuickDaoSQLite implements QuickDao {
 
 	@Override
 	public Quick findById(Long quickID, boolean getContents) throws Exception {
-		try (PreparedStatement select = this.connection.prepareStatement(getContents ? SQL_SELECT : SQL_SELECT_ALL_BUT_CONTENTS)) {
+		try (PreparedStatement select = this.connection.prepareStatement(getContents ? SQL_SELECT : SQL_SELECT_ALL_BUT_CONTENTS_WHERE)) {
 			select.setLong(1, quickID);
 			try (ResultSet rs = select.executeQuery()) {
 				if (rs.next()) {
@@ -60,6 +71,8 @@ public class QuickDaoSQLite implements QuickDao {
 		if (JDBCUtils.containsColumn(rs, "contents")) {
 			contents = rs.getBytes("contents");
 		}
+		byte[] contentHash = rs.getBytes("content_hash");
+		Long contentSize = rs.getLong("content_size");
 		String contentType = rs.getString("content_type");
 		String name = rs.getString("name");
 		String description = rs.getString("description");
@@ -67,6 +80,8 @@ public class QuickDaoSQLite implements QuickDao {
 		Quick quick = new Quick(id, createdAt, updatedAt, expiresAt, deletedAt);
 		quick.setUserId(userId);
 		quick.setContents(contents);
+		quick.setContentHash(contentHash);
+		quick.setContentSize(contentSize);
 		quick.setContentType(contentType);
 		quick.setName(name);
 		quick.setDescription(description);

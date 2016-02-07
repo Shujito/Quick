@@ -1,13 +1,18 @@
 package org.shujito.quick;
 
+import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
+
+import org.apache.commons.io.FileUtils;
+import org.shujito.quick.models.Quick;
 import org.shujito.quick.models.Session;
 import org.shujito.quick.models.User;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URLEncoder;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.MultipartConfigElement;
@@ -38,7 +43,7 @@ public class PageController {
 		if (b64Session == null) {
 			return;
 		}
-		byte[] sessionBytes = Crypto.base64decode(b64Session);
+		byte[] sessionBytes = org.shujito.quick.utils.Crypto.base64decode(b64Session);
 		User user = this.quickService.getUserFromSession(sessionBytes);
 		request.session().attribute(ATTRIBUTE_USER, user);
 	}
@@ -52,8 +57,25 @@ public class PageController {
 	 */
 	public ModelAndView index(Request request, Response response) {
 		Map<String, Object> model = new HashMap<>();
-		Date date = new Date();
-		model.put("milliseconds", date.getTime());
+		try {
+			List<Quick> quicks = this.quickService.getActiveQuicks();
+			List<Map<String, Object>> quicksMapList = new ArrayList<>();
+			for (Quick quick : quicks) {
+				Map<String, Object> quickMap = new HashMap<>();
+				quickMap.put("id", quick.getId());
+				quickMap.put("name", quick.getName());
+				quickMap.put("description", quick.getDescription());
+				quickMap.put("content_size", FileUtils.byteCountToDisplaySize(quick.getContentSize()));
+				quickMap.put("content_hash", HexBin.encode(quick.getContentHash()).toLowerCase());
+				quicksMapList.add(quickMap);
+			}
+			model.put("quicks", quicksMapList);
+		} catch (Exception e) {
+			e.printStackTrace();
+			model.put("error", e.toString());
+		}
+		//Date date = new Date();
+		//model.put("milliseconds", date.getTime());
 		return new ModelAndView(model, "index");
 	}
 
@@ -75,7 +97,7 @@ public class PageController {
 		if ("POST".equals(request.requestMethod())) {
 			try {
 				Session session = this.quickService.logInUser(email, password, request.userAgent());
-				String accessToken = Crypto.base64encode(session.getAccessToken());
+				String accessToken = org.shujito.quick.utils.Crypto.base64encode(session.getAccessToken());
 				request.session().attribute(ATTRIBUTE_ACCESS_TOKEN, accessToken);
 				response.redirect("/me");
 			} catch (Exception ex) {

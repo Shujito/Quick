@@ -54,6 +54,6 @@ public class Application {
 		Spark.post("/me", pageController::me, jadeTemplateEngine);
 		Spark.get("/quick", pageController::quick, jadeTemplateEngine);
 		Spark.post("/quick", "multipart/form-data", pageController::quick, jadeTemplateEngine);
-		Spark.get("/s/:id", pageController::quick, jadeTemplateEngine);
+		//Spark.get("/q/:id", pageController::quick, jadeTemplateEngine);
 	}
 }

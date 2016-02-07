@@ -1,4 +1,4 @@
-package org.shujito.quick;
+package org.shujito.quick.utils;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
