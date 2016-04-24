@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils;
 import org.shujito.quick.models.Quick;
 import org.shujito.quick.models.Session;
 import org.shujito.quick.models.User;
+import org.shujito.quick.utils.Crypto;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -43,7 +44,7 @@ public class PageController {
 		if (b64Session == null) {
 			return;
 		}
-		byte[] sessionBytes = org.shujito.quick.utils.Crypto.base64decode(b64Session);
+		byte[] sessionBytes = Crypto.base64decode(b64Session);
 		User user = this.quickService.getUserFromSession(sessionBytes);
 		request.session().attribute(ATTRIBUTE_USER, user);
 	}
@@ -97,7 +98,7 @@ public class PageController {
 		if ("POST".equals(request.requestMethod())) {
 			try {
 				Session session = this.quickService.logInUser(email, password, request.userAgent());
-				String accessToken = org.shujito.quick.utils.Crypto.base64encode(session.getAccessToken());
+				String accessToken = Crypto.base64encode(session.getAccessToken());
 				request.session().attribute(ATTRIBUTE_ACCESS_TOKEN, accessToken);
 				response.redirect("/me");
 			} catch (Exception ex) {

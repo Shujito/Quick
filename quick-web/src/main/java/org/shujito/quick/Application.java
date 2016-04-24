@@ -3,8 +3,6 @@ package org.shujito.quick;
 import java.util.HashMap;
 import java.util.Map;
 
-import de.neuland.jade4j.JadeConfiguration;
-import de.neuland.jade4j.template.FileTemplateLoader;
 import spark.ModelAndView;
 import spark.Spark;
 import spark.template.jade.JadeTemplateEngine;
@@ -14,10 +12,12 @@ public class Application {
 		Spark.port(9999);
 		Spark.staticFileLocation("public");
 		Spark.externalStaticFileLocation("public");
+		/*
 		JadeConfiguration jcon = new JadeConfiguration();
 		jcon.setCaching(false);
 		jcon.setTemplateLoader(new FileTemplateLoader("./src/main/resources/templates/", "UTF-8"));
-		JadeTemplateEngine jadeTemplateEngine = new JadeTemplateEngine(jcon) {
+		//*/
+		JadeTemplateEngine jadeTemplateEngine = new JadeTemplateEngine() {
 			@Override
 			public String render(ModelAndView modelAndView) {
 				String rendered = super.render(modelAndView);
